@@ -17,12 +17,6 @@
 	   		android:layout_marginLeft="5dp"
 	   		android:layout_height="wrap_content"  
 	   		android:text="Location Off"></ToggleButton>
-    	
-	   <ToggleButton 
-	   		android:id="@+id/toggleSendData" 
-	   		android:layout_width="100dp" 
-	   		android:layout_marginLeft="5dp"
-	   		android:layout_height="wrap_content"  
-	   		android:text="Send Data Off"></ToggleButton>
+ 
 	</LinearLayout>
 </LinearLayout>
