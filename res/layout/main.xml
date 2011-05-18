@@ -5,18 +5,60 @@
     android:layout_height="fill_parent"
     android:background="#ffffff">
     
-    <LinearLayout
-    	android:orientation="horizontal"
-    	android:layout_width="fill_parent"
-    	android:layout_height="80dp"
-    	android:layout_weight="1">
-    	
-	   <ToggleButton 
-	   		android:id="@+id/toggleLocation" 
-	   		android:layout_width="100dp" 
-	   		android:layout_marginLeft="5dp"
-	   		android:layout_height="wrap_content"  
-	   		android:text="Location Off"></ToggleButton>
- 
-	</LinearLayout>
+	<TextView android:text="Please enter your credentials below:" 
+		android:id="@+id/TextView01" 
+		android:layout_width="wrap_content" 
+		android:layout_margin="6dp"
+		android:textSize="18sp"
+		android:textColor="#333333"
+		android:layout_height="wrap_content"></TextView>
+		<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		    android:layout_width="fill_parent"
+		    android:layout_height="fill_parent"
+		    android:stretchColumns="1">
+		    <TableRow>
+				<TextView android:text="Username:" 
+					android:id="@+id/textUsername" 
+					android:layout_width="wrap_content" 
+					android:layout_margin="2dp"
+					android:textSize="18sp"
+					android:textColor="#333333"
+					android:layout_height="wrap_content"></TextView>
+				<EditText android:text="" 
+					android:id="@+id/Username" 
+					android:layout_width="200dp" 
+					android:layout_marginRight="5dp"
+					android:textSize="25sp"
+					android:layout_height="wrap_content"></EditText>
+			</TableRow>
+			<TableRow>
+				<TextView android:text="Password:" 
+					android:id="@+id/txtPassword" 
+					android:layout_width="wrap_content" 
+					android:layout_margin="2dp"
+					android:textSize="18sp"
+					android:textColor="#333333"
+					android:layout_height="wrap_content"></TextView>
+				<EditText android:text="" 
+					android:id="@+id/Password" 
+					android:password="true"
+					android:textSize="25sp"
+					android:layout_marginRight="5dp"
+					android:layout_height="wrap_content"></EditText>
+			</TableRow>
+			<TableRow>
+				<Button android:text="Login" 
+					android:id="@+id/Login" 
+					android:layout_width="wrap_content" 
+					android:layout_marginTop="17dp"
+					android:layout_marginLeft="5dp"
+					android:layout_height="wrap_content"></Button>	
+			   <ToggleButton 
+			   		android:id="@+id/toggleLocation" 
+			   		android:layout_width="wrap_content" 
+			   		android:layout_margin="10dp"
+			   		android:layout_height="wrap_content"  
+			   		android:text="Location Off"></ToggleButton>
+ 			</TableRow>
+ 		</TableLayout>
 </LinearLayout>

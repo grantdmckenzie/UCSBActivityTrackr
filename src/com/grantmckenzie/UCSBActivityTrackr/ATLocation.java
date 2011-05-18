@@ -45,9 +45,9 @@ public class ATLocation extends Service implements LocationListener{
 	Criteria crit = null;
 
 	
-	TelephonyManager tm;
+	private TelephonyManager tm;
 	private ConnectivityManager connectivity;
-    String deviceId;
+    private String deviceId;
     private String vals;
     
 	@Override
