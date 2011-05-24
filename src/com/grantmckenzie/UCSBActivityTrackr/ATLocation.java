@@ -30,14 +30,16 @@ import android.location.LocationProvider;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.widget.Toast;
 
-public class ATLocation extends Service implements LocationListener{
+public class ATLocation extends Service {
 	
 	private LocationManager locationManager;
+	private LocationListener locationListener;
 	private String best;
 	private Location currentLocation;
 	private String handler = "http://geogremlin.geog.ucsb.edu/grantm/android_server.php";
@@ -73,6 +75,10 @@ public class ATLocation extends Service implements LocationListener{
 	    UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
 	    deviceId = deviceUuid.toString();
 	    
+	    locationListener = new MyLocationListener();
+	    
+	    
+	    
 		/* best = locationManager.getBestProvider(criteria, true);
 		Location location = locationManager.getLastKnownLocation(best);
 		String Text = "Best Provider is: "+best+"\nLast known coords:\nLat= " + location.getLatitude() + "\nLong= " + location.getLongitude();
@@ -81,36 +87,44 @@ public class ATLocation extends Service implements LocationListener{
 	
 	@Override
 	public void onDestroy() {
-		Toast.makeText(this, "Location Service Stopped", Toast.LENGTH_SHORT).show();
-		locationManager.removeUpdates(this);
+		// Toast.makeText(this, "Location Service Stopped", Toast.LENGTH_SHORT).show();
+		locationManager.removeUpdates(locationListener);
 	}
 	
 	@Override
 	public void onStart(Intent intent, int startid) {
-		Toast.makeText(this, "Location Service Started", Toast.LENGTH_SHORT).show();
-		locationManager.requestLocationUpdates(best, 20000, 0, this);
+		// Toast.makeText(this, "Location Service Started", Toast.LENGTH_SHORT).show();
+		locationManager.requestLocationUpdates(best,0, 0, locationListener);
 	}
 	
-	public void onLocationChanged(Location loc) {
+	public class MyLocationListener implements LocationListener {
+		
+		@Override
+		public void onLocationChanged(Location loc) {
 			
 			Timestamp ts = new Timestamp(Calendar.getInstance().getTime().getTime());	
 			double lat = loc.getLatitude();
 			double lon = loc.getLongitude();
-			// Toast.makeText(this, ""+lat+", "+lon, Toast.LENGTH_SHORT).show();
-			// vals = lat + "," + lon + "," + ts.toString();
 			storeData(lat+"", lon+"", ts.toString());
-	}
+			locationManager.removeUpdates(locationListener);
+		}
 
-	public void onProviderDisabled(String provider) {
+		@Override
+		public void onProviderDisabled(String provider) {
 			// Toast.makeText( getApplicationContext(),"Gps Disabled",Toast.LENGTH_SHORT ).show();
-	}
+			
+		}
 
-	public void onProviderEnabled(String provider) {
+		@Override
+		public void onProviderEnabled(String provider) {
 			// Toast.makeText( getApplicationContext(),"Gps Enabled",Toast.LENGTH_SHORT).show();
-	}
+		}
 
-	public void onStatusChanged(String provider, int status, Bundle extras) {
+		@Override
+		public void onStatusChanged(String provider, int status, Bundle extras) {
 			// Toast.makeText( getApplicationContext(),"Location Service using: "+provider,Toast.LENGTH_SHORT).show();
+		}
+
 	}
 
 	
@@ -140,7 +154,7 @@ public class ATLocation extends Service implements LocationListener{
 					 editor.putInt("ST_COORDS", 0);
 					 editor.putString("ST_PHONE", "");
 					 editor.commit(); */
-					 Toast.makeText( getApplicationContext(),"Data sent to server.",Toast.LENGTH_SHORT).show();
+					 // Toast.makeText( getApplicationContext(),"Data sent to server.",Toast.LENGTH_SHORT).show();
 				 }
 			 } else {
 				 Toast.makeText( getApplicationContext(),"No new data to send.",Toast.LENGTH_SHORT).show();
@@ -152,17 +166,21 @@ public class ATLocation extends Service implements LocationListener{
 	}
 	
 	public boolean isNetworkAvailable(Context context) {
-	    if (connectivity != null) {
-	       NetworkInfo[] info = connectivity.getAllNetworkInfo();
-	       if (info != null) {
-	          for (int i = 0; i < info.length; i++) {
-	             if (info[i].getState() == NetworkInfo.State.CONNECTED) {
-	                return true;
-	             }
-	          }
-	       }
-	    } 
-	    return false;
+		try {
+		    if (connectivity != null) {
+		       NetworkInfo[] info = connectivity.getAllNetworkInfo();
+		       if (info != null) {
+		          for (int i = 0; i < info.length; i++) {
+		             if (info[i].getState() == NetworkInfo.State.CONNECTED) {
+		                return true;
+		             }
+		          }
+		       }
+		    } 
+		    return false;
+		} catch (Exception e) {
+			return false;
+		}
 	 }
 	
 	private String sendLocation(String uid, String lat, String lon, String timest) {

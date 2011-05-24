@@ -18,9 +18,11 @@ import android.telephony.TelephonyManager;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.View;
@@ -44,6 +46,8 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
   private String handler = "http://geogremlin.geog.ucsb.edu/grantm/login.php";
   private InputMethodManager imm;
   private ConnectivityManager connectivity;
+  private PendingIntent locpendingIntent;
+  private ProgressDialog dialog;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -51,7 +55,7 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
     setContentView(R.layout.main); 
     
     tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-    
+	connectivity = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 	// Get unique device ID
 	String tmDevice, tmSerial, androidId;
     tmDevice = "" + tm.getDeviceId();
@@ -59,6 +63,7 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
     androidId = "" + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
     UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
     deviceId = deviceUuid.toString();
+    
     
     buttonLocation = (ToggleButton) findViewById(R.id.toggleLocation);
     buttonLocation.setOnClickListener(this);
@@ -71,46 +76,58 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
     username = (EditText) findViewById(R.id.Username);
     password = (EditText) findViewById(R.id.Password);
     
-    
   }
  
   public void onClick(View src) {
     switch (src.getId()) {
     case R.id.toggleLocation:
     	if (!buttonLocation.isChecked()) {
-    		/* AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-    	    alarmManager.cancel(locpendingIntent); */
-    		stopService(new Intent(this, ATLocation.class));
+    		AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+    	    alarmManager.cancel(locpendingIntent);
+    		// stopService(new Intent(this, ATLocation.class));
     	    // Toast.makeText(this, "Location Off", Toast.LENGTH_LONG).show(); 
-    	    buttonLocation.setText("Location Off");
+    	    // buttonLocation.setText("Location Off");
     	} else {
-    		buttonLocation.setText("Location On");
-    		/* long firstTime = SystemClock.elapsedRealtime();
+    		// buttonLocation.setText("Location On");
+    		long firstTime = SystemClock.elapsedRealtime();
 			Intent myIntent = new Intent(this, ATLocation.class);
-			locpendingIntent = PendingIntent.getService(this, 0, myIntent, 0); */
-    		startService(new Intent(this, ATLocation.class));
-			/* AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 300000, locpendingIntent); */
-    	}
+			locpendingIntent = PendingIntent.getService(this, 0, myIntent, 0);
+    		// startService(new Intent(this, ATLocation.class));
+			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 20000, locpendingIntent); 
+    	} 
         break;
     case R.id.Login:
-    	String result = checkLogin(username.getText().toString(), password.getText().toString());
-    	int resultint = Integer.parseInt(result.replace("\n","").trim());
-    	if (resultint == 1) {
-    		Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-    		buttonLocation.setEnabled(true);
+    	buttonLogin.setEnabled(false);
+    	username.setEnabled(false);
+    	password.setEnabled(false);
+    	if (isNetworkAvailable(getApplicationContext())) {
+	    	String result = checkLogin(username.getText().toString(), password.getText().toString());
+	    	int resultint = Integer.parseInt(result.replace("\n","").trim());
+	    	if (resultint == 1) {
+	    		Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
+	    		buttonLocation.setEnabled(true);
+	    	} else {
+	    		Toast.makeText(this, "There was an error logging you in.  Please try again.", Toast.LENGTH_SHORT).show();
+	    	}
+	    	imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+	    	imm.hideSoftInputFromWindow(password.getWindowToken(), 0);
+	    	dialog.hide();
     	} else {
-    		Toast.makeText(this, "There was an error logging you in.  Please try again.", Toast.LENGTH_SHORT).show();
-    	}
-    	imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-    	imm.hideSoftInputFromWindow(password.getWindowToken(), 0);
+			 Toast.makeText( getApplicationContext(),"No Data Connection.\nCould not check credentials",Toast.LENGTH_SHORT).show();
+			 
+		}
+    	buttonLogin.setEnabled(true);
+	    username.setEnabled(true);
+	    password.setEnabled(true);
     }
   }
   
   public String checkLogin(String user, String pass) {
-	  
+	    
+	    dialog = ProgressDialog.show(this, "","Checking credentials", true);
 	  	tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-		connectivity = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		
 		// Get unique device ID
 		String tmDevice, tmSerial, androidId;
 	    tmDevice = "" + tm.getDeviceId();
@@ -140,5 +157,22 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
 		    // TODO Auto-generated catch block  
 		}  
 		return HTTPHelper.request(response);
+  }
+  public boolean isNetworkAvailable(Context context) {
+		try {
+		    if (connectivity != null) {
+		       NetworkInfo[] info = connectivity.getAllNetworkInfo();
+		       if (info != null) {
+		          for (int i = 0; i < info.length; i++) {
+		             if (info[i].getState() == NetworkInfo.State.CONNECTED) {
+		                return true;
+		             }
+		          }
+		       }
+		    } 
+		    return false;
+		} catch (Exception e) {
+			return false;
+		}
   }
 }
