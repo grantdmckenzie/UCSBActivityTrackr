@@ -21,10 +21,12 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
@@ -36,23 +38,25 @@ import android.widget.ToggleButton;
 
 public class UCSBActivityTrackr extends Activity implements OnClickListener {
 
-  ToggleButton buttonLocation;
   Button buttonLogin;
   EditText username;
   EditText password;
   private TelephonyManager tm;
   private String deviceId;
   private int resultid = 0;
-  private String handler = "http://geogremlin.geog.ucsb.edu/grantm/login.php";
+  private String handler = "http://geogremlin.geog.ucsb.edu/android/login.php";
   private InputMethodManager imm;
   private ConnectivityManager connectivity;
   private PendingIntent locpendingIntent;
-  private ProgressDialog dialog;
+  private SharedPreferences settings;
+  private boolean at_login;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main); 
+    
+    settings = PreferenceManager.getDefaultSharedPreferences(this);
     
     tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 	connectivity = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -64,55 +68,58 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
     UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
     deviceId = deviceUuid.toString();
     
-    
-    buttonLocation = (ToggleButton) findViewById(R.id.toggleLocation);
-    buttonLocation.setOnClickListener(this);
-    buttonLocation.setText("Location Off");
- 
     buttonLogin = (Button) findViewById(R.id.Login);
     buttonLogin.setOnClickListener(this);
-    buttonLocation.setEnabled(false);
     
     username = (EditText) findViewById(R.id.Username);
     password = (EditText) findViewById(R.id.Password);
     
+    at_login = settings.getBoolean("AT_LOGIN", false);
+    if (at_login)
+    	buttonLogin.setText("Logout");
+    else
+    	buttonLogin.setText("Login");
+    
   }
  
   public void onClick(View src) {
-    switch (src.getId()) {
-    case R.id.toggleLocation:
-    	if (!buttonLocation.isChecked()) {
-    		AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-    	    alarmManager.cancel(locpendingIntent);
-    		// stopService(new Intent(this, ATLocation.class));
-    	    // Toast.makeText(this, "Location Off", Toast.LENGTH_LONG).show(); 
-    	    // buttonLocation.setText("Location Off");
-    	} else {
-    		// buttonLocation.setText("Location On");
-    		long firstTime = SystemClock.elapsedRealtime();
-			Intent myIntent = new Intent(this, ATLocation.class);
-			locpendingIntent = PendingIntent.getService(this, 0, myIntent, 0);
-    		// startService(new Intent(this, ATLocation.class));
-			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 20000, locpendingIntent); 
-    	} 
-        break;
-    case R.id.Login:
+    if (src.getId() == R.id.Login) {
     	buttonLogin.setEnabled(false);
     	username.setEnabled(false);
     	password.setEnabled(false);
     	if (isNetworkAvailable(getApplicationContext())) {
-	    	String result = checkLogin(username.getText().toString(), password.getText().toString());
-	    	int resultint = Integer.parseInt(result.replace("\n","").trim());
-	    	if (resultint == 1) {
-	    		Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-	    		buttonLocation.setEnabled(true);
-	    	} else {
-	    		Toast.makeText(this, "There was an error logging you in.  Please try again.", Toast.LENGTH_SHORT).show();
-	    	}
-	    	imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-	    	imm.hideSoftInputFromWindow(password.getWindowToken(), 0);
-	    	dialog.hide();
+    		if (!at_login) {
+		    	String result = checkLogin(username.getText().toString(), password.getText().toString());
+		    	int resultint = Integer.parseInt(result.replace("\n","").trim());
+		    	if (resultint == 1) {
+		    		Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
+		    		long firstTime = SystemClock.elapsedRealtime();
+					Intent myIntent = new Intent(this, ATLocation.class);
+					locpendingIntent = PendingIntent.getService(this, 0, myIntent, 0);
+					AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+					alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 20000, locpendingIntent); 
+					buttonLogin.setText("Logout");
+					SharedPreferences.Editor editor = settings.edit();
+					editor.putBoolean("AT_LOGIN", true);
+					at_login = true;
+					editor.commit();
+		    	} else {
+		    		Toast.makeText(this, "There was an error logging you in.  Please try again.", Toast.LENGTH_SHORT).show();
+		    	}
+		    	// imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		    	// imm.hideSoftInputFromWindow(password.getWindowToken(), 0);
+		    	// dialog.hide();
+    		} else {
+    			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+        	    alarmManager.cancel(locpendingIntent);
+        	    Toast.makeText(this, "Location Service Stopped", Toast.LENGTH_SHORT).show();
+        	    SharedPreferences.Editor editor = settings.edit();
+				editor.putBoolean("AT_LOGIN", false);
+				at_login = false;
+				buttonLogin.setText("Login");
+				username.setText("");
+				password.setText("");
+    		}
     	} else {
 			 Toast.makeText( getApplicationContext(),"No Data Connection.\nCould not check credentials",Toast.LENGTH_SHORT).show();
 			 
@@ -125,7 +132,7 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
   
   public String checkLogin(String user, String pass) {
 	    
-	    dialog = ProgressDialog.show(this, "","Checking credentials", true);
+	    // dialog = ProgressDialog.show(this, "","Checking credentials", true);
 	  	tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 		
 		// Get unique device ID
@@ -155,7 +162,7 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
 		    // TODO Auto-generated catch block  
 		} catch (IOException e) {  
 		    // TODO Auto-generated catch block  
-		}  
+		} 
 		return HTTPHelper.request(response);
   }
   public boolean isNetworkAvailable(Context context) {

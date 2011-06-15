@@ -154,7 +154,7 @@ public class ATLocation extends Service {
 					 editor.putInt("ST_COORDS", 0);
 					 editor.putString("ST_PHONE", "");
 					 editor.commit(); */
-					 // Toast.makeText( getApplicationContext(),"Data sent to server.",Toast.LENGTH_SHORT).show();
+					 Toast.makeText( getApplicationContext(),"Data sent to server.",Toast.LENGTH_SHORT).show();
 				 }
 			 } else {
 				 Toast.makeText( getApplicationContext(),"No new data to send.",Toast.LENGTH_SHORT).show();

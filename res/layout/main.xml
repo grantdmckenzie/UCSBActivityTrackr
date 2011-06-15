@@ -49,16 +49,11 @@
 			<TableRow>
 				<Button android:text="Login" 
 					android:id="@+id/Login" 
+					android:layout_span="2"
 					android:layout_width="wrap_content" 
 					android:layout_marginTop="17dp"
 					android:layout_marginLeft="5dp"
 					android:layout_height="wrap_content"></Button>	
-			   <ToggleButton 
-			   		android:id="@+id/toggleLocation" 
-			   		android:layout_width="wrap_content" 
-			   		android:layout_margin="10dp"
-			   		android:layout_height="wrap_content"  
-			   		android:text="Location Off"></ToggleButton>
  			</TableRow>
  		</TableLayout>
 </LinearLayout>
