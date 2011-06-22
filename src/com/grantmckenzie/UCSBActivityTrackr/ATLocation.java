@@ -162,7 +162,9 @@ public class ATLocation extends Service {
 		 } else {
 			 Toast.makeText( getApplicationContext(),"No Data Connection.\nData not sent to server.",Toast.LENGTH_SHORT).show();
 		 }
-		 
+		 Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
+		 dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		 getApplication().startActivity(dialogIntent);
 
 	}
 	
