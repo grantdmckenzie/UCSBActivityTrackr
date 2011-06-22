@@ -13,6 +13,9 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 
 import android.telephony.TelephonyManager;
 import android.app.Activity;
@@ -49,7 +52,7 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
   private ConnectivityManager connectivity;
   private PendingIntent locpendingIntent;
   private SharedPreferences settings;
-  private boolean at_login;
+  private int at_login;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -74,8 +77,10 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
     username = (EditText) findViewById(R.id.Username);
     password = (EditText) findViewById(R.id.Password);
     
-    at_login = settings.getBoolean("AT_LOGIN", false);
-    if (at_login)
+    at_login = settings.getInt("AT_LOGINSET", 0);
+    
+    Toast.makeText(this, ""+at_login, Toast.LENGTH_SHORT).show();
+    if (at_login == 1)
     	buttonLogin.setText("Logout");
     else
     	buttonLogin.setText("Login");
@@ -87,8 +92,9 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
     	buttonLogin.setEnabled(false);
     	username.setEnabled(false);
     	password.setEnabled(false);
+    	SharedPreferences.Editor editor = settings.edit();
     	if (isNetworkAvailable(getApplicationContext())) {
-    		if (!at_login) {
+    		if (at_login == 0) {
 		    	String result = checkLogin(username.getText().toString(), password.getText().toString());
 		    	int resultint = Integer.parseInt(result.replace("\n","").trim());
 		    	if (resultint == 1) {
@@ -99,9 +105,8 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
 					AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
 					alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 20000, locpendingIntent); 
 					buttonLogin.setText("Logout");
-					SharedPreferences.Editor editor = settings.edit();
-					editor.putBoolean("AT_LOGIN", true);
-					at_login = true;
+					editor.putInt("AT_LOGINSET", 1);
+					at_login = 1;
 					editor.commit();
 		    	} else {
 		    		Toast.makeText(this, "There was an error logging you in.  Please try again.", Toast.LENGTH_SHORT).show();
@@ -113,15 +118,15 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
     			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
         	    alarmManager.cancel(locpendingIntent);
         	    Toast.makeText(this, "Location Service Stopped", Toast.LENGTH_SHORT).show();
-        	    SharedPreferences.Editor editor = settings.edit();
-				editor.putBoolean("AT_LOGIN", false);
-				at_login = false;
+				editor.putInt("AT_LOGINSET", 0);
+				at_login = 0;
 				buttonLogin.setText("Login");
 				username.setText("");
 				password.setText("");
     		}
     	} else {
 			 Toast.makeText( getApplicationContext(),"No Data Connection.\nCould not check credentials",Toast.LENGTH_SHORT).show();
+			 editor.putInt("AT_LOGINSET", 0);
 			 
 		}
     	buttonLogin.setEnabled(true);
@@ -143,7 +148,14 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
 	    UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
 	    deviceId = deviceUuid.toString();
 	  
-		HttpClient httpclient = new DefaultHttpClient();  
+	    
+	    HttpParams httpParameters = new BasicHttpParams();
+	    int timeoutConnection = 3000;
+	    HttpConnectionParams.setConnectionTimeout(httpParameters, timeoutConnection);
+	    int timeoutSocket = 3000;
+	    HttpConnectionParams.setSoTimeout(httpParameters, timeoutSocket);
+	    
+		HttpClient httpclient = new DefaultHttpClient(httpParameters);  
 		HttpPost httppost = new HttpPost(handler);  
 		HttpResponse response = null;
 		

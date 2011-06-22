@@ -42,7 +42,7 @@ public class ATLocation extends Service {
 	private LocationListener locationListener;
 	private String best;
 	private Location currentLocation;
-	private String handler = "http://geogremlin.geog.ucsb.edu/grantm/android_server.php";
+	private String handler = "http://geogremlin.geog.ucsb.edu/android/android_server.php";
 
 	Criteria crit = null;
 
@@ -162,6 +162,7 @@ public class ATLocation extends Service {
 		 } else {
 			 Toast.makeText( getApplicationContext(),"No Data Connection.\nData not sent to server.",Toast.LENGTH_SHORT).show();
 		 }
+		 
 
 	}
 	
