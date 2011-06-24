@@ -57,7 +57,6 @@ public class ATLocation extends Service {
 	private LocationListener locationListener;
 	private String best;
 	private Location currentLocation;
-	private String handler = "http://geogremlin.geog.ucsb.edu/android/android_server.php";
 	private ArrayList<Fix> latestFixes = new ArrayList<Fix>();
 	private Timestamp previousTime;
 	
@@ -142,6 +141,7 @@ public class ATLocation extends Service {
 		}
 
 	}
+	
 	public void parseActivities(float lat, float lng, Timestamp ts) {
 		int aSize = latestFixes.size();
 	
@@ -182,6 +182,7 @@ public class ATLocation extends Service {
 			Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
 			dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			getApplication().startActivity(dialogIntent);
+			storeData(""+avgLat, ""+avgLng, ""+ts, true);		// store activity (last variable is set to true for activity)
 			// start of new activity
 			// end of trip
 		} else {
@@ -195,7 +196,7 @@ public class ATLocation extends Service {
 				getApplication().startActivity(dialogIntent);
 			} else {
 				// Go about your business as usual
-				storeData(""+lat, ""+lng, ""+ts);	// store fix in TRAVEL_FIXES table 
+				storeData(""+lat, ""+lng, ""+ts, false);	// store fix in TRAVEL_FIXES table 
 			}
 		}
 	}
@@ -214,7 +215,7 @@ public class ATLocation extends Service {
 	    return new Float(dist * meterConversion).floatValue();
 	}
 	
-	private void storeData(String lat, String lon, String timest) {
+	private void storeData(String lat, String lon, String timest, boolean activity) {
 		
 		/* SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		
@@ -233,7 +234,7 @@ public class ATLocation extends Service {
 	    
 		 if (isNetworkAvailable(getApplicationContext())) {
 			 if (lat != "") {
-				 String response = sendLocation(deviceId, lat, lon, timest);
+				 String response = sendLocation(deviceId, lat, lon, timest, activity);
 				 if (response != "0") {
 					 /* editor = settings.edit();
 					 editor.putString("ST_LOCDATA", "");
@@ -271,11 +272,17 @@ public class ATLocation extends Service {
 		}
 	 }
 	
-	private String sendLocation(String uid, String lat, String lon, String timest) {
+	private String sendLocation(String uid, String lat, String lon, String timest, boolean activity) {
+		String handler;
+		if (activity)
+			handler = "http://geogremlin.geog.ucsb.edu/android/android_server.php";
+		else {
+			handler = "http://geogremlin.geog.ucsb.edu/android/store_activity.php";
+		}
+		
 		HttpClient httpclient = new DefaultHttpClient();  
 	    HttpPost httppost = new HttpPost(handler);  
 	    HttpResponse response = null;
-	    
 	    try {  
 	        // Add your data  
 	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();  
