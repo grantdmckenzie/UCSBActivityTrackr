@@ -1,3 +1,11 @@
+/*
+ * Project: UCSBActivityTrackr
+ * Author: Grant McKenzie
+ * Date: May 2011
+ * Client: GeoTrans Lab @ UCSB
+ * 
+ */
+
 package com.grantmckenzie.UCSBActivityTrackr;
 
 import java.io.IOException;
@@ -35,15 +43,24 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.widget.Toast;
+import com.grantmckenzie.UCSBActivityTrackr.Fix;
 
 public class ATLocation extends Service {
+	
+	private float MINDISTANCEBTWNFIXES = 150;	// meters
+	private float MINDISTANCEBTWNACTS = 150;	// meters
+	private float previousActLat = -999;
+	private float previousActLng = -999;
+	private boolean activityMode = false;
 	
 	private LocationManager locationManager;
 	private LocationListener locationListener;
 	private String best;
 	private Location currentLocation;
 	private String handler = "http://geogremlin.geog.ucsb.edu/android/android_server.php";
-
+	private ArrayList<Fix> latestFixes = new ArrayList<Fix>();
+	private Timestamp previousTime;
+	
 	Criteria crit = null;
 
 	
@@ -77,8 +94,6 @@ public class ATLocation extends Service {
 	    
 	    locationListener = new MyLocationListener();
 	    
-	    
-	    
 		/* best = locationManager.getBestProvider(criteria, true);
 		Location location = locationManager.getLastKnownLocation(best);
 		String Text = "Best Provider is: "+best+"\nLast known coords:\nLat= " + location.getLatitude() + "\nLong= " + location.getLongitude();
@@ -103,9 +118,10 @@ public class ATLocation extends Service {
 		public void onLocationChanged(Location loc) {
 			
 			Timestamp ts = new Timestamp(Calendar.getInstance().getTime().getTime());	
-			double lat = loc.getLatitude();
-			double lon = loc.getLongitude();
-			storeData(lat+"", lon+"", ts.toString());
+			float lat = (float) loc.getLatitude();
+			float lon = (float) loc.getLongitude();
+			// storeData(lat, lon, ts.toString());
+			parseActivities(lat, lon, ts);
 			locationManager.removeUpdates(locationListener);
 		}
 
@@ -126,7 +142,77 @@ public class ATLocation extends Service {
 		}
 
 	}
+	public void parseActivities(float lat, float lng, Timestamp ts) {
+		int aSize = latestFixes.size();
+	
+		Fix currentFix = new Fix(lat,lng, ts);	// create new fix object
+		
+		long currentTSminus5 = ts.getTime() - 300000;		// subtrack 5 minutes from current timestamp
+		
+		for(int i=0; i<aSize;i++) {
+			long fixesTS = latestFixes.get(i).getTs().getTime();
+			if (fixesTS < currentTSminus5) {
+				latestFixes.remove(i);
+			}
+		}
+		float totLat = lat;
+		float totLng = lng;
+		float totDist = 0;
+		for(int i=0; i<aSize;i++) {
+			totDist = calcDist(lat, lng, latestFixes.get(i).getLat(), latestFixes.get(i).getLng());
+			totLat += latestFixes.get(i).getLat();
+			totLng += latestFixes.get(i).getLng();
+		}
+		float avgDistBTWFixes = totDist / aSize;
+		float avgLat = totLat / (aSize + 1);
+		float avgLng = totLng / (aSize + 1);
+		float dist2lastAct = 0;
+		latestFixes.add(currentFix);
+		Toast.makeText( getApplicationContext(),"Array Size: "+latestFixes.size() + "\nAvgDist: " + avgDistBTWFixes,Toast.LENGTH_SHORT).show();
+		if (previousActLat != -999) {
+			dist2lastAct = calcDist(previousActLat, previousActLng, avgLat, avgLng);
+		}
+		
+		if (avgDistBTWFixes <= MINDISTANCEBTWNFIXES && dist2lastAct >= MINDISTANCEBTWNACTS) {
+			previousActLat = avgLat;
+			previousActLng = avgLng;
+			activityMode = true;
+			Toast.makeText( getApplicationContext(),"START of New Activity",Toast.LENGTH_LONG).show();
+			
+			Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
+			dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			getApplication().startActivity(dialogIntent);
+			// start of new activity
+			// end of trip
+		} else {
+			if (activityMode) {
+				activityMode = false;
+				// end of new activity
+				// start of new trip
+				Toast.makeText( getApplicationContext(),"END of Activity",Toast.LENGTH_LONG).show();
+				Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
+				dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				getApplication().startActivity(dialogIntent);
+			} else {
+				// Go about your business as usual
+				storeData(""+lat, ""+lng, ""+ts);	// store fix in TRAVEL_FIXES table 
+			}
+		}
+	}
+	
+	public static float calcDist(double lat1, double lng1, double lat2, double lng2) {
+	    double earthRadius = 3958.75;
+	    double dLat = Math.toRadians(lat2-lat1);
+	    double dLng = Math.toRadians(lng2-lng1);
+	    double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+	               Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+	               Math.sin(dLng/2) * Math.sin(dLng/2);
+	    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+	    double dist = earthRadius * c;
 
+	    int meterConversion = 1609;
+	    return new Float(dist * meterConversion).floatValue();
+	}
 	
 	private void storeData(String lat, String lon, String timest) {
 		
@@ -162,11 +248,10 @@ public class ATLocation extends Service {
 		 } else {
 			 Toast.makeText( getApplicationContext(),"No Data Connection.\nData not sent to server.",Toast.LENGTH_SHORT).show();
 		 }
-		 Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
-		 dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		 getApplication().startActivity(dialogIntent);
-
+		 
 	}
+	
+
 	
 	public boolean isNetworkAvailable(Context context) {
 		try {

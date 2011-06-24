@@ -1,3 +1,11 @@
+/*
+ * Project: UCSBActivityTrackr
+ * Author: Grant McKenzie
+ * Date: May 2011
+ * Client: GeoTrans Lab @ UCSB
+ * 
+ */
+
 package com.grantmckenzie.UCSBActivityTrackr;
 
 import android.app.Activity;
