@@ -49,8 +49,8 @@ public class ATLocation extends Service {
 	
 	private float MINDISTANCEBTWNFIXES = 150;	// meters
 	private float MINDISTANCEBTWNACTS = 150;	// meters
-	private float previousActLat = -999;
-	private float previousActLng = -999;
+	private float previousActLat = 0;
+	private float previousActLng = 0;
 	private boolean activityMode = false;
 	
 	private LocationManager locationManager;
@@ -166,34 +166,37 @@ public class ATLocation extends Service {
 		float avgDistBTWFixes = totDist / aSize;
 		float avgLat = totLat / (aSize + 1);
 		float avgLng = totLng / (aSize + 1);
-		float dist2lastAct = 0;
 		latestFixes.add(currentFix);
 		Toast.makeText( getApplicationContext(),"Array Size: "+latestFixes.size() + "\nAvgDist: " + avgDistBTWFixes,Toast.LENGTH_SHORT).show();
-		if (previousActLat != -999) {
-			dist2lastAct = calcDist(previousActLat, previousActLng, avgLat, avgLng);
-		}
+		//if (previousActLat != -999) {
+		float dist2lastAct = calcDist(previousActLat, previousActLng, avgLat, avgLng);
+		//}
 		
-		if (avgDistBTWFixes <= MINDISTANCEBTWNFIXES && dist2lastAct >= MINDISTANCEBTWNACTS) {
-			previousActLat = avgLat;
-			previousActLng = avgLng;
-			activityMode = true;
-			Toast.makeText( getApplicationContext(),"START of New Activity",Toast.LENGTH_LONG).show();
-			
-			Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
-			dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			getApplication().startActivity(dialogIntent);
-			storeData(""+avgLat, ""+avgLng, ""+ts, true);		// store activity (last variable is set to true for activity)
-			// start of new activity
-			// end of trip
+		if (avgDistBTWFixes <= MINDISTANCEBTWNFIXES) {
+			if (dist2lastAct >= MINDISTANCEBTWNACTS) {
+				previousActLat = avgLat;
+				previousActLng = avgLng;
+				activityMode = true;
+				Toast.makeText( getApplicationContext(),"START of New Activity. \n End of Trip",Toast.LENGTH_LONG).show();
+				/* Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
+				dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				getApplication().startActivity(dialogIntent); */
+				storeData(""+avgLat, ""+avgLng, ""+ts, true);		// store activity (last variable is set to true for activity)
+				// start of new activity
+				// end of trip
+			} else {
+				// don't do anything, we are still within an activity.
+			}
 		} else {
 			if (activityMode) {
 				activityMode = false;
 				// end of new activity
 				// start of new trip
-				Toast.makeText( getApplicationContext(),"END of Activity",Toast.LENGTH_LONG).show();
-				Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
+				Toast.makeText( getApplicationContext(),"END of Activity.\n START of New Trip",Toast.LENGTH_LONG).show();
+				storeData(""+avgLat, ""+avgLng, ""+ts, true);
+				/* Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
 				dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				getApplication().startActivity(dialogIntent);
+				getApplication().startActivity(dialogIntent); */
 			} else {
 				// Go about your business as usual
 				storeData(""+lat, ""+lng, ""+ts, false);	// store fix in TRAVEL_FIXES table 
@@ -275,9 +278,9 @@ public class ATLocation extends Service {
 	private String sendLocation(String uid, String lat, String lon, String timest, boolean activity) {
 		String handler;
 		if (activity)
-			handler = "http://geogremlin.geog.ucsb.edu/android/android_server.php";
-		else {
 			handler = "http://geogremlin.geog.ucsb.edu/android/store_activity.php";
+		else {
+			handler = "http://geogremlin.geog.ucsb.edu/android/android_server.php";
 		}
 		
 		HttpClient httpclient = new DefaultHttpClient();  
