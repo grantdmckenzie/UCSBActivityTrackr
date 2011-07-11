@@ -18,6 +18,7 @@ public final class R {
         public static final int Password=0x7f050004;
         public static final int TextView01=0x7f050000;
         public static final int Username=0x7f050002;
+        public static final int locResults=0x7f050006;
         public static final int textUsername=0x7f050001;
         public static final int txtPassword=0x7f050003;
     }

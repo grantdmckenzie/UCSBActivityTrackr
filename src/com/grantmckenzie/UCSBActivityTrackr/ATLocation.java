@@ -59,6 +59,7 @@ public class ATLocation extends Service {
 	private Location currentLocation;
 	private ArrayList<Fix> latestFixes = new ArrayList<Fix>();
 	private Timestamp previousTime;
+	private String lastActivityID;
 	
 	Criteria crit = null;
 
@@ -178,10 +179,13 @@ public class ATLocation extends Service {
 				previousActLng = avgLng;
 				activityMode = true;
 				Toast.makeText( getApplicationContext(),"START of New Activity. \n End of Trip",Toast.LENGTH_LONG).show();
+
 				/* Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
 				dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				dialogIntent.putExtra("testkey", "gmoney");
 				getApplication().startActivity(dialogIntent); */
-				storeData(""+avgLat, ""+avgLng, ""+ts, true);		// store activity (last variable is set to true for activity)
+				
+				storeData(""+avgLat, ""+avgLng, ""+ts, true, "");		// store activity (last variable is set to true for activity)
 				// start of new activity
 				// end of trip
 			} else {
@@ -193,15 +197,19 @@ public class ATLocation extends Service {
 				// end of new activity
 				// start of new trip
 				Toast.makeText( getApplicationContext(),"END of Activity.\n START of New Trip",Toast.LENGTH_LONG).show();
-				storeData(""+avgLat, ""+avgLng, ""+ts, true);
+				storeData(""+avgLat, ""+avgLng, ""+ts, true, lastActivityID);
 				/* Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
 				dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				getApplication().startActivity(dialogIntent); */
 			} else {
 				// Go about your business as usual
-				storeData(""+lat, ""+lng, ""+ts, false);	// store fix in TRAVEL_FIXES table 
+				storeData(""+lat, ""+lng, ""+ts, false, "");	// store fix in TRAVEL_FIXES table 
 			}
 		}
+	}
+	
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		
 	}
 	
 	public static float calcDist(double lat1, double lng1, double lat2, double lng2) {
@@ -218,7 +226,7 @@ public class ATLocation extends Service {
 	    return new Float(dist * meterConversion).floatValue();
 	}
 	
-	private void storeData(String lat, String lon, String timest, boolean activity) {
+	private void storeData(String lat, String lon, String timest, boolean activity, String activityid) {
 		
 		/* SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		
@@ -237,13 +245,23 @@ public class ATLocation extends Service {
 	    
 		 if (isNetworkAvailable(getApplicationContext())) {
 			 if (lat != "") {
-				 String response = sendLocation(deviceId, lat, lon, timest, activity);
+				 String response = sendLocation(deviceId, lat, lon, timest, activity, activityid);
+				 String lines[] = response.split("\\r?\\n");
 				 if (response != "0") {
 					 /* editor = settings.edit();
 					 editor.putString("ST_LOCDATA", "");
 					 editor.putInt("ST_COORDS", 0);
 					 editor.putString("ST_PHONE", "");
 					 editor.commit(); */
+					 if (activity && activityid == "") {
+						 lastActivityID = lines[0];
+						 Toast.makeText( getApplicationContext(),lines[0],Toast.LENGTH_SHORT).show();
+						 
+						 Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
+						 dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+						 dialogIntent.putExtra("testkey", response);
+						 getApplication().startActivity(dialogIntent);
+					 }
 					 Toast.makeText( getApplicationContext(),"Data sent to server.",Toast.LENGTH_SHORT).show();
 				 }
 			 } else {
@@ -275,7 +293,7 @@ public class ATLocation extends Service {
 		}
 	 }
 	
-	private String sendLocation(String uid, String lat, String lon, String timest, boolean activity) {
+	private String sendLocation(String uid, String lat, String lon, String timest, boolean activity, String activityid) {
 		String handler;
 		if (activity)
 			handler = "http://geogremlin.geog.ucsb.edu/android/store_activity.php";
@@ -293,6 +311,7 @@ public class ATLocation extends Service {
 	        nameValuePairs.add(new BasicNameValuePair("lat", lat));
 	        nameValuePairs.add(new BasicNameValuePair("lon", lon));
 	        nameValuePairs.add(new BasicNameValuePair("t", timest));
+	        nameValuePairs.add(new BasicNameValuePair("id", activityid));
 	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
 	  
 	        // Execute HTTP Post Request  
@@ -303,7 +322,8 @@ public class ATLocation extends Service {
 	    } catch (IOException e) {  
 	        // TODO Auto-generated catch block  
 	    }  
-		return response.toString();
+	    
+	    return HTTPHelper.request(response);
 	}
 }
 
