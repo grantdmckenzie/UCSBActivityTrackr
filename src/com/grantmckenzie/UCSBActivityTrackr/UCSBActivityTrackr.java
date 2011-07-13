@@ -87,7 +87,7 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
     
     at_login = settings.getInt("AT_LOGINSET", 0);
     
-    Toast.makeText(this, ""+at_login, Toast.LENGTH_SHORT).show();
+    // Toast.makeText(this, ""+at_login, Toast.LENGTH_SHORT).show();
     if (at_login == 1)
     	buttonLogin.setText("Logout");
     else

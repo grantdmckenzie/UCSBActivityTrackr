@@ -144,34 +144,30 @@ public class ATLocation extends Service {
 	}
 	
 	public void parseActivities(float lat, float lng, Timestamp ts) {
-		int aSize = latestFixes.size();
-	
+
 		Fix currentFix = new Fix(lat,lng, ts);	// create new fix object
 		
 		long currentTSminus5 = ts.getTime() - 300000;		// subtrack 5 minutes from current timestamp
-		
-		for(int i=0; i<aSize;i++) {
-			long fixesTS = latestFixes.get(i).getTs().getTime();
-			if (fixesTS < currentTSminus5) {
-				latestFixes.remove(i);
-			}
-		}
+
 		float totLat = lat;
 		float totLng = lng;
 		float totDist = 0;
-		for(int i=0; i<aSize;i++) {
-			totDist = calcDist(lat, lng, latestFixes.get(i).getLat(), latestFixes.get(i).getLng());
+		for(int i=0; i<latestFixes.size();i++) {
+			long fixesTS = latestFixes.get(i).getTs().getTime();
+			if (fixesTS < currentTSminus5) {
+				latestFixes.remove(latestFixes.get(i));
+			}
+			totDist += calcDist(lat, lng, latestFixes.get(i).getLat(), latestFixes.get(i).getLng());
 			totLat += latestFixes.get(i).getLat();
 			totLng += latestFixes.get(i).getLng();
 		}
-		float avgDistBTWFixes = totDist / aSize;
-		float avgLat = totLat / (aSize + 1);
-		float avgLng = totLng / (aSize + 1);
+		float avgDistBTWFixes = totDist / latestFixes.size();
+		float avgLat = totLat / (latestFixes.size() + 1);
+		float avgLng = totLng / (latestFixes.size() + 1);
 		latestFixes.add(currentFix);
-		Toast.makeText( getApplicationContext(),"Array Size: "+latestFixes.size() + "\nAvgDist: " + avgDistBTWFixes,Toast.LENGTH_SHORT).show();
-		//if (previousActLat != -999) {
+		
 		float dist2lastAct = calcDist(previousActLat, previousActLng, avgLat, avgLng);
-		//}
+		Toast.makeText( getApplicationContext(),"Array Size: "+latestFixes.size() + "\nAvgDist: " + avgDistBTWFixes + "\nDist2LastAct: " + dist2lastAct,Toast.LENGTH_SHORT).show();
 		
 		if (avgDistBTWFixes <= MINDISTANCEBTWNFIXES) {
 			if (dist2lastAct >= MINDISTANCEBTWNACTS) {
@@ -179,12 +175,6 @@ public class ATLocation extends Service {
 				previousActLng = avgLng;
 				activityMode = true;
 				Toast.makeText( getApplicationContext(),"START of New Activity. \n End of Trip",Toast.LENGTH_LONG).show();
-
-				/* Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
-				dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				dialogIntent.putExtra("testkey", "gmoney");
-				getApplication().startActivity(dialogIntent); */
-				
 				storeData(""+avgLat, ""+avgLng, ""+ts, true, "");		// store activity (last variable is set to true for activity)
 				// start of new activity
 				// end of trip
@@ -194,13 +184,10 @@ public class ATLocation extends Service {
 		} else {
 			if (activityMode) {
 				activityMode = false;
-				// end of new activity
-				// start of new trip
 				Toast.makeText( getApplicationContext(),"END of Activity.\n START of New Trip",Toast.LENGTH_LONG).show();
 				storeData(""+avgLat, ""+avgLng, ""+ts, true, lastActivityID);
-				/* Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
-				dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				getApplication().startActivity(dialogIntent); */
+				// end of new activity
+				// start of new trip
 			} else {
 				// Go about your business as usual
 				storeData(""+lat, ""+lng, ""+ts, false, "");	// store fix in TRAVEL_FIXES table 
@@ -259,7 +246,7 @@ public class ATLocation extends Service {
 						 
 						 Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
 						 dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-						 dialogIntent.putExtra("testkey", response);
+						 dialogIntent.putExtra("locations", response);
 						 getApplication().startActivity(dialogIntent);
 					 }
 					 Toast.makeText( getApplicationContext(),"Data sent to server.",Toast.LENGTH_SHORT).show();

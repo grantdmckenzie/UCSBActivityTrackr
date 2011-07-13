@@ -8,31 +8,42 @@
 
 package com.grantmckenzie.UCSBActivityTrackr;
 
-import android.app.Activity;
+import android.app.ListActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-public class ATQuestionnaire extends Activity implements OnClickListener {
+public class ATQuestionnaire extends ListActivity {
 	
 	  EditText locResults;
 	
 	  @Override
 	  public void onCreate(Bundle savedInstanceState) {
-		    super.onCreate(savedInstanceState);
-		    setContentView(R.layout.questionnaire); 
-		    Bundle b = this.getIntent().getExtras();
-		    String i = b.getString("testkey");
-		    // Toast.makeText( getApplicationContext(),i,Toast.LENGTH_LONG).show();
-		    locResults = (EditText) findViewById(R.id.locResults);
-		    locResults.setText(i);
-	  }
+		  super.onCreate(savedInstanceState);
 
-	@Override
-	public void onClick(View v) {
-		// TODO Auto-generated method stub
-		
-	}
+		  Bundle b = this.getIntent().getExtras();
+		  String response = b.getString("locations");
+		  String lines[] = response.split("\\r?\\n");
+		  lines[0] = " Where are you?\n Please select from the nearby places below:";
+		  
+		  setListAdapter(new ArrayAdapter<String>(this, R.layout.questionnaire, lines));
+
+		  ListView lv = getListView();
+		  lv.setTextFilterEnabled(true);
+
+		  lv.setOnItemClickListener(new OnItemClickListener() {
+		    public void onItemClick(AdapterView<?> parent, View view,
+		        int position, long id) {
+		      // When clicked, show a toast with the TextView text
+		      Toast.makeText(getApplicationContext(), ((TextView) view).getText(),
+		          Toast.LENGTH_SHORT).show();
+		    }
+		  });
+	  }
 }
