@@ -7,13 +7,17 @@
  */
 
 package com.grantmckenzie.UCSBActivityTrackr;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -48,9 +52,16 @@ public class ATQuestionnaire extends Activity implements OnClickListener {
         // create the grid item mapping
         String[] from = new String[] {"col_1"};
         int[] to = new int[] { R.id.item1 };
-
+        
         Bundle b = this.getIntent().getExtras();
+        String logtime = b.getString("logtime");
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.remove(logtime);
+	    editor.commit();
+        
 		String response = b.getString("locations");
+		
         // String response = "hello world 1\nhello world 2\nhello world 1\nhello world 2\nhello world 1\nhello world 2\nhello world 1\nhello world 2\nhello world 1\nhello world 2"; 
 		String lines[] = response.split("\\r?\\n");
 		

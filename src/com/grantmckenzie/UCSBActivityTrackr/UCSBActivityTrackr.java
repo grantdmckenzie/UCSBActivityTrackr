@@ -37,6 +37,9 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
@@ -92,6 +95,28 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
     
   }
  
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+      MenuInflater inflater = getMenuInflater();
+      inflater.inflate(R.menu.at_menu, menu);
+      return true;
+  }
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+      // Handle item selection
+      switch (item.getItemId()) {
+      case R.id.postponed:
+    	  Intent dialogIntent = new Intent(getBaseContext(), ATPostponed.class);
+		  dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		  getApplication().startActivity(dialogIntent);
+          return true;
+      case R.id.help:
+          // showHelp();
+          return true;
+      default:
+          return super.onOptionsItemSelected(item);
+      }
+  }
   public void onClick(View src) {
     if (src.getId() == R.id.Login) {
     	buttonLogin.setEnabled(false);

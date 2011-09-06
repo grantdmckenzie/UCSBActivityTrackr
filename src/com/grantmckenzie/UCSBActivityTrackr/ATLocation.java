@@ -26,10 +26,15 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
+import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -53,6 +58,10 @@ public class ATLocation extends Service {
 	private float previousActLng = 0;
 	private long previousActTS = 0;
 	private boolean activityMode = false;
+	
+	private NotificationManager mNotificationManager;
+	private int SIMPLE_NOTFICATION_ID = 1000;
+	private Notification notifyDetails;
 	
 	private LocationManager locationManager;
 	private LocationListener locationListener;
@@ -82,6 +91,14 @@ public class ATLocation extends Service {
 		crit = new Criteria();
 		best = locationManager.getBestProvider(crit, true);
 		currentLocation = locationManager.getLastKnownLocation(best);
+		
+		// Notification stuff
+		mNotificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+		notifyDetails = new Notification(R.drawable.icon,"New Alert, Click Me!",System.currentTimeMillis());
+		long[] vibrate = {100,100,200,300};
+        notifyDetails.vibrate = vibrate;
+        notifyDetails.defaults =Notification.DEFAULT_ALL;
+        Context context = getApplicationContext();
 		
 		tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 		connectivity = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -252,10 +269,21 @@ public class ATLocation extends Service {
 						 lastActivityID = lines[0];
 						 Toast.makeText( getApplicationContext(),lines[0],Toast.LENGTH_SHORT).show();
 						 
-						 Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
+						 Intent dialogIntent = new Intent(getBaseContext(), notify1.class);
 						 dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 						 dialogIntent.putExtra("locations", response);
 						 getApplication().startActivity(dialogIntent);
+						  
+						  /* Context context = getApplicationContext();
+			              CharSequence contentTitle = "New Survey";
+			              CharSequence contentText = "Get back to Application on clicking me";
+			          
+			              Intent dialogIntent = new Intent(getBaseContext(), UCSBActivityTrackr.class);
+			              PendingIntent intent = PendingIntent.getActivity(this, 0, dialogIntent, android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+			              notifyDetails.setLatestEventInfo(context, contentTitle, contentText, intent);
+			              mNotificationManager.notify(SIMPLE_NOTFICATION_ID, notifyDetails); */
+
+
 					 }
 					 Toast.makeText( getApplicationContext(),"Data sent to server.",Toast.LENGTH_SHORT).show();
 				 }
