@@ -14,35 +14,41 @@ public final class R {
         public static final int icon=0x7f020000;
     }
     public static final class id {
+        public static final int Cancel=0x7f060007;
+        public static final int Help=0x7f06000a;
         public static final int Login=0x7f060006;
         public static final int Password=0x7f060005;
+        public static final int Postponed=0x7f060009;
         public static final int TextView01=0x7f060001;
         public static final int Username=0x7f060003;
-        public static final int button1=0x7f060008;
-        public static final int button2=0x7f060009;
-        public static final int editText1=0x7f060012;
-        public static final int header=0x7f06000a;
-        public static final int help=0x7f060014;
-        public static final int home=0x7f060010;
+        public static final int editText1=0x7f060016;
+        public static final int gpstracking=0x7f060008;
+        public static final int header=0x7f060012;
+        public static final int help=0x7f060018;
+        public static final int imageView1=0x7f06000d;
         public static final int item1=0x7f060000;
-        public static final int layout=0x7f06000b;
-        public static final int linearLayout1=0x7f06000d;
-        public static final int listview=0x7f06000c;
-        public static final int locResults=0x7f060011;
-        public static final int main=0x7f060007;
-        public static final int notactivity=0x7f06000e;
-        public static final int notlisted=0x7f06000f;
-        public static final int postponed=0x7f060013;
+        public static final int later=0x7f060010;
+        public static final int layout=0x7f060013;
+        public static final int linearLayout1=0x7f06000c;
+        public static final int listview=0x7f060014;
+        public static final int locResults=0x7f060015;
+        public static final int main=0x7f06000b;
+        public static final int never=0x7f060011;
+        public static final int now=0x7f06000f;
+        public static final int postponed=0x7f060017;
         public static final int textUsername=0x7f060002;
+        public static final int textView1=0x7f06000e;
         public static final int txtPassword=0x7f060004;
     }
     public static final class layout {
         public static final int grid_item=0x7f030000;
-        public static final int main=0x7f030001;
-        public static final int notify1=0x7f030002;
-        public static final int questionnaire=0x7f030003;
-        public static final int questionnaire_old=0x7f030004;
-        public static final int questionnaire_other=0x7f030005;
+        public static final int login=0x7f030001;
+        public static final int main=0x7f030002;
+        public static final int notify1=0x7f030003;
+        public static final int postponed=0x7f030004;
+        public static final int questionnaire=0x7f030005;
+        public static final int questionnaire_old=0x7f030006;
+        public static final int questionnaire_other=0x7f030007;
     }
     public static final class menu {
         public static final int at_menu=0x7f050000;

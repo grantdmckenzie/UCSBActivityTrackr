@@ -4,9 +4,35 @@
 	android:layout_height="fill_parent"
 	android:layout_width="fill_parent"
 	android:background="#ff000000">
+    <LinearLayout android:id="@+id/linearLayout1" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <ImageView android:layout_width="80dp" android:src="@drawable/icon" android:id="@+id/imageView1" android:layout_height="80dp" 
+        android:layout_marginLeft="13dp" android:layout_marginRight="5dp" android:layout_marginTop="0dp" android:layout_marginBottom="4dp"></ImageView>
+        <TextView android:layout_margin="10dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textAppearance="?android:attr/textAppearanceMedium" android:text="Is this a new activity?" android:id="@+id/textView1"></TextView>
+    </LinearLayout>
 
-        <Button android:text="Complete Now" android:id="@+id/button1" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
-        <Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/button2" android:text="Complete Later"></Button>
-   
+        <Button 
+        	android:text="Yes, Complete Survey Now" 
+        	android:id="@+id/now" 
+        	android:layout_height="wrap_content"
+        	android:layout_marginLeft="10dp"
+        	android:layout_marginRight="10dp"
+        	android:layout_width="230dp"
+        	android:layout_marginTop="2dp"></Button>
+        <Button 
+        	android:layout_height="wrap_content" 
+        	android:id="@+id/later" 
+        	android:text="Yes, Complete Survey Later" 
+        	android:layout_marginLeft="10dp"
+        	android:layout_marginRight="10dp"
+        	android:layout_width="230dp"
+        	android:layout_marginTop="2dp"></Button>
+   		<Button
+        	android:layout_height="wrap_content" 
+        	android:id="@+id/never" 
+        	android:text="No, Not a New Activity" 
+        	android:layout_marginLeft="10dp"
+        	android:layout_width="230dp"
+        	android:layout_marginBottom="15dp"
+        	android:layout_marginRight="10dp"></Button>
 
 </LinearLayout>

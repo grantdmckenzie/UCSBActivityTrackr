@@ -178,6 +178,7 @@ public class ATLocation extends Service {
 			totDist += calcDist(lat, lng, latestFixes.get(i).getLat(), latestFixes.get(i).getLng());
 			totLat += latestFixes.get(i).getLat();
 			totLng += latestFixes.get(i).getLng();
+			
 		}
 		float avgDistBTWFixes = totDist / latestFixes.size();
 		float avgLat = totLat / (latestFixes.size() + 1);
@@ -188,6 +189,7 @@ public class ATLocation extends Service {
 		long timediff = ts.getTime() - previousActTS;
 		Toast.makeText( getApplicationContext(),"Array Size: "+latestFixes.size() + "\nAvgDist: " + avgDistBTWFixes + "\nDist2LastAct: " + dist2lastAct + "\nTimeDiff: " + timediff,Toast.LENGTH_SHORT).show();
 		
+		
 		if (avgDistBTWFixes <= MINDISTANCEBTWNFIXES) {
 			if (dist2lastAct >= MINDISTANCEBTWNACTS) {
 				if (timediff >= 300000) {
@@ -196,25 +198,27 @@ public class ATLocation extends Service {
 					previousActTS = ts.getTime();
 					activityMode = true;
 					Toast.makeText( getApplicationContext(),"START of New Activity. \n End of Trip",Toast.LENGTH_LONG).show();
-					storeData(""+lat, ""+lng, ""+ts, false, "", false);		// store end of trip
-					storeData(""+lat, ""+lng, ""+ts, true, "", false);		// store start activity (last variable is set to true for activity)
-					
+					storeData(""+lat, ""+lng, ""+ts, false, "", false, false);		// store end of trip (no activity, no activity id, not new trip, end of activity)
+					storeData(""+lat, ""+lng, ""+ts, true, "", false, false);		// store start activity (yes activity, no activity id, not new trip)
 				} else {
-					// don't do anything, we are still within an activity.
+					// still within activity, send points to db.
+					storeData(""+currentFix.getLat(), ""+currentFix.getLng(), ""+currentFix.getTs(), true, lastActivityID, false, false);
 				}
+			} else {
+				storeData(""+currentFix.getLat(), ""+currentFix.getLng(), ""+currentFix.getTs(), true, lastActivityID, false, false);
 			}
 		} else {
 			if (activityMode) {
 				activityMode = false;
 				Toast.makeText( getApplicationContext(),"END of Activity.\n START of New Trip",Toast.LENGTH_LONG).show();
-				storeData(""+lat, ""+lng, ""+ts, true, lastActivityID, false);	// store end of activity
-				storeData(""+lat, ""+lng, ""+ts, false, "", true);				// store start of trip  (lat,lng, timestamp, activity, activityid, newtrip)
+				storeData(""+lat, ""+lng, ""+ts, true, lastActivityID, false, true);	// store end of activity
+				storeData(""+lat, ""+lng, ""+ts, false, "", true, false);				// store start of trip  (lat,lng, timestamp, activity, activityid, newtrip)
 			} else {
 				// Go about your business as usual
 				if (previousActTS == 0) {
-					storeData(""+lat, ""+lng, ""+ts, false, "", true);	// new trip
+					storeData(""+lat, ""+lng, ""+ts, false, "", true, false);	// new trip
 				} else {
-					storeData(""+lat, ""+lng, ""+ts, false, "", false);	// store fix in TRAVEL_FIXES table 
+					storeData(""+lat, ""+lng, ""+ts, false, "", false, false);	// store fix in TRAVEL_FIXES table 
 				}
 			}
 		}
@@ -238,7 +242,7 @@ public class ATLocation extends Service {
 	    return new Float(dist * meterConversion).floatValue();
 	}
 	
-	private void storeData(String lat, String lon, String timest, boolean activity, String activityid, boolean newtrip) {
+	private void storeData(String lat, String lon, String timest, boolean activity, String activityid, boolean newtrip, boolean endactivity) {
 		
 		/* SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		
@@ -257,7 +261,7 @@ public class ATLocation extends Service {
 	    
 		 if (isNetworkAvailable(getApplicationContext())) {
 			 if (lat != "") {
-				 String response = sendLocation(deviceId, lat, lon, timest, activity, activityid, newtrip);
+				 String response = sendLocation(deviceId, lat, lon, timest, activity, activityid, newtrip, endactivity);
 				 String lines[] = response.split("\\r?\\n");
 				 if (response != "0") {
 					 /* editor = settings.edit();
@@ -272,6 +276,8 @@ public class ATLocation extends Service {
 						 Intent dialogIntent = new Intent(getBaseContext(), notify1.class);
 						 dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 						 dialogIntent.putExtra("locations", response);
+						 dialogIntent.putExtra("lat", lat);
+						 dialogIntent.putExtra("lon", lon);
 						 getApplication().startActivity(dialogIntent);
 						  
 						  /* Context context = getApplicationContext();
@@ -316,7 +322,7 @@ public class ATLocation extends Service {
 		}
 	 }
 	
-	private String sendLocation(String uid, String lat, String lon, String timest, boolean activity, String activityid, boolean newtrip) {
+	private String sendLocation(String uid, String lat, String lon, String timest, boolean activity, String activityid, boolean newtrip, boolean endactivity) {
 		String handler;
 		if (activity)
 			handler = "http://geogremlin.geog.ucsb.edu/android/store_activity.php";
@@ -336,6 +342,7 @@ public class ATLocation extends Service {
 	        nameValuePairs.add(new BasicNameValuePair("t", timest));
 	        nameValuePairs.add(new BasicNameValuePair("id", activityid));
 	        nameValuePairs.add(new BasicNameValuePair("new", new Boolean(newtrip).toString()));
+	        nameValuePairs.add(new BasicNameValuePair("endact", new Boolean(endactivity).toString()));
 	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
 	  
 	        // Execute HTTP Post Request  

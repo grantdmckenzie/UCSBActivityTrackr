@@ -3,18 +3,14 @@ package com.grantmckenzie.UCSBActivityTrackr;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.AdapterView.OnItemClickListener;
@@ -26,7 +22,7 @@ public class ATPostponed extends Activity implements OnClickListener {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.questionnaire);
+        setContentView(R.layout.postponed);
         lv= (ListView)findViewById(R.id.listview);
         
         // create the grid item mapping
@@ -42,7 +38,7 @@ public class ATPostponed extends Activity implements OnClickListener {
         List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
         for(int i = 1; i < datess.length; i++){
         	HashMap<String, String> map = new HashMap<String, String>();
-        	map.put("col_1", datess[i]);
+        	map.put("col_1", "Activity at " + datess[i]);
         	fillMaps.add(map);
         }
 
