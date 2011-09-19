@@ -26,6 +26,7 @@ public class notify1 extends Activity implements OnClickListener {
 	Button btnLater;
 	Button btnNever;
 	public String response;
+	String activityID;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,7 +43,7 @@ public class notify1 extends Activity implements OnClickListener {
  		 response = b.getString("locations");
  		 String lat = b.getString("lat");
  		 String lon = b.getString("lon");
- 		 
+ 		 activityID = b.getString("id");
  		try {
  			ImageView i = (ImageView)findViewById(R.id.imageView1);
  			Bitmap bitmap = BitmapFactory.decodeStream((InputStream)new URL("http://maps.googleapis.com/maps/api/staticmap?center="+lat+","+lon+"&zoom=12&size=80x80&maptype=roadmap&markers=size:small|color:red|"+lat+","+lon+"&sensor=false").getContent());
@@ -59,7 +60,7 @@ public class notify1 extends Activity implements OnClickListener {
 		SharedPreferences.Editor editor = settings.edit();
 		String currentDateTimeString = (String) android.text.format.DateFormat.format("yyyy-MM-dd hh:mm:ss", new java.util.Date());
 		String at_postponed_dates = settings.getString("AT_POSTPONED_DATES", "");
-		at_postponed_dates = at_postponed_dates + "#" + currentDateTimeString;
+		at_postponed_dates = at_postponed_dates + "#" + currentDateTimeString + "&" + activityID;
 		
 		if (v.getId() == R.id.now) {
 			 editor.putString(currentDateTimeString, response);
@@ -69,7 +70,7 @@ public class notify1 extends Activity implements OnClickListener {
 			 Intent dialogIntent = new Intent(getBaseContext(), ATQuestionnaire.class);
 			 dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			 dialogIntent.putExtra("locations", response);
-			 dialogIntent.putExtra("logtime", currentDateTimeString);
+			 dialogIntent.putExtra("logtime", currentDateTimeString + "&" + activityID);
 			 getApplication().startActivity(dialogIntent);
 		} else if (v.getId() == R.id.later){
 			Toast.makeText( getApplicationContext(),"Questionnaire added to queue as \""+currentDateTimeString+"\"",Toast.LENGTH_LONG).show();

@@ -278,6 +278,7 @@ public class ATLocation extends Service {
 						 dialogIntent.putExtra("locations", response);
 						 dialogIntent.putExtra("lat", lat);
 						 dialogIntent.putExtra("lon", lon);
+						 dialogIntent.putExtra("id", lastActivityID);
 						 getApplication().startActivity(dialogIntent);
 						  
 						  /* Context context = getApplicationContext();

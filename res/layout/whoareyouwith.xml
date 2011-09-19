@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#000000">
+    <CheckBox android:text="Family Member" android:id="@+id/family" android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
+    <CheckBox android:text="Friend" android:id="@+id/friend" android:layout_height="wrap_content" android:layout_width="wrap_content"></CheckBox>
+    <CheckBox android:text="Coworker" android:id="@+id/coworker" android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
+    <CheckBox android:text="Other" android:id="@+id/other" android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
+    
+</LinearLayout>
