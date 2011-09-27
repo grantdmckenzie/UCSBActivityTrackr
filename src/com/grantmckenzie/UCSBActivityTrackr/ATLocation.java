@@ -189,7 +189,6 @@ public class ATLocation extends Service {
 		long timediff = ts.getTime() - previousActTS;
 		Toast.makeText( getApplicationContext(),"Array Size: "+latestFixes.size() + "\nAvgDist: " + avgDistBTWFixes + "\nDist2LastAct: " + dist2lastAct + "\nTimeDiff: " + timediff,Toast.LENGTH_SHORT).show();
 		
-		
 		if (avgDistBTWFixes <= MINDISTANCEBTWNFIXES) {
 			if (dist2lastAct >= MINDISTANCEBTWNACTS) {
 				if (timediff >= 300000) {
@@ -201,7 +200,7 @@ public class ATLocation extends Service {
 					storeData(""+lat, ""+lng, ""+ts, false, "", false, false, currentProvider);		// store end of trip (no activity, no activity id, not new trip, end of activity)
 					storeData(""+lat, ""+lng, ""+ts, true, "", false, false, currentProvider);		// store start activity (yes activity, no activity id, not new trip)
 				} else {
-					// still within activity, send points to db.
+					// still within activity, send points to db
 					storeData(""+currentFix.getLat(), ""+currentFix.getLng(), ""+currentFix.getTs(), true, lastActivityID, false, false, currentProvider);
 				}
 			} else {
@@ -273,6 +272,16 @@ public class ATLocation extends Service {
 						 lastActivityID = lines[0];
 						 Toast.makeText( getApplicationContext(),lines[0],Toast.LENGTH_SHORT).show();
 						 
+						 String ns = Context.NOTIFICATION_SERVICE;
+				         NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
+				         int icon = R.drawable.icon;
+				         CharSequence tickerText = "New Activity Survey";
+				         long when = System.currentTimeMillis();
+				         Notification notification = new Notification(icon, tickerText, when);
+				         Context context = getApplicationContext();
+				         CharSequence contentTitle = "New Activity Survey";
+				         CharSequence contentText = "You have a new activity Survey!";
+				         
 						 Intent dialogIntent = new Intent(getBaseContext(), notify1.class);
 						 dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 						 dialogIntent.putExtra("locations", response);
@@ -280,7 +289,14 @@ public class ATLocation extends Service {
 						 dialogIntent.putExtra("lon", lon);
 						 dialogIntent.putExtra("id", lastActivityID);
 						 getApplication().startActivity(dialogIntent);
-						  
+						 
+						 PendingIntent contentIntent = PendingIntent.getActivity(this, 0, dialogIntent, 0);
+						 notification.defaults |= Notification.DEFAULT_SOUND;
+						 notification.defaults |= Notification.DEFAULT_VIBRATE;
+				         notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+				         final int HELLO_ID = 1;
+				         mNotificationManager.notify(HELLO_ID, notification);
+				         
 						  /* Context context = getApplicationContext();
 			              CharSequence contentTitle = "New Survey";
 			              CharSequence contentText = "Get back to Application on clicking me";

@@ -105,7 +105,7 @@ public class ATQuestionnaire extends Activity implements OnClickListener {
         	fillMaps.add(map);
         }
         HashMap<String, String> map = new HashMap<String, String>();
-    	map.put("col_1", "O");
+    	map.put("col_1", "Other (Not Listed)");
     	fillMaps.add(map);
     	
     	factory = LayoutInflater.from(this);
@@ -180,6 +180,7 @@ public class ATQuestionnaire extends Activity implements OnClickListener {
             	CheckBox family = (CheckBox) whoareyouwith.findViewById((R.id.family));
             	CheckBox friend = (CheckBox) whoareyouwith.findViewById((R.id.friend));
             	CheckBox coworker = (CheckBox) whoareyouwith.findViewById((R.id.coworker));
+            	CheckBox other = (CheckBox) whoareyouwith.findViewById((R.id.other));
                 if (family.isChecked())
                 	selectedWhom += "1,";
                 else 
@@ -189,6 +190,10 @@ public class ATQuestionnaire extends Activity implements OnClickListener {
                 else 
                 	selectedWhom += "0,";
                 if (coworker.isChecked())
+                	selectedWhom += "1";
+                else 
+                	selectedWhom += "0";
+                if (other.isChecked())
                 	selectedWhom += "1";
                 else 
                 	selectedWhom += "0";

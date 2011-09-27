@@ -39,6 +39,7 @@ import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -125,6 +126,8 @@ public class UCSBActivityTrackr extends Activity implements OnClickListener {
 						textusername.setVisibility(View.INVISIBLE);
 						textpassword.setVisibility(View.INVISIBLE);
 						buttonPostponed.setVisibility(View.VISIBLE);
+						InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+						imm.hideSoftInputFromWindow(password.getWindowToken(), 0);
 			    	} else {
 			    		Toast.makeText(this, "There was an error logging you in.  Please try again.", Toast.LENGTH_SHORT).show();
 			    	}
