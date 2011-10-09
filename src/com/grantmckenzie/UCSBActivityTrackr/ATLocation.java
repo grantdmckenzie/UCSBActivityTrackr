@@ -89,7 +89,8 @@ public class ATLocation extends Service {
 
 		locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 		crit = new Criteria();
-		best = locationManager.getBestProvider(crit, true);
+		// best = locationManager.getBestProvider(crit, true);
+		best = LocationManager.GPS_PROVIDER;
 		currentLocation = locationManager.getLastKnownLocation(best);
 		
 		// Notification stuff
